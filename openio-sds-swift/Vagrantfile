@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  # Box configuration
+  config.vm.box = "openio/sds"
+  config.vm.network "private_network", :type => 'dhcp', :adapter => 2
+  config.vm.network "public_network" , :type => 'dhcp', :adapter => 3
+  config.vm.synced_folder '.', '/var/lib/oio/vagrant', disabled: true
+
+  # use "openio" as default user instead of "vagrant"
+  config.ssh.username = "openio"
+  config.ssh.password = ""
+
+  # VirtualBox Specific
+  config.vm.provider :virtualbox do |virtualbox|
+    virtualbox.gui = true
+    virtualbox.name = "OpenIO-SDS-Swift"
+    virtualbox.cpus = "1"
+    virtualbox.memory = "1024"
+  end
+
+  # VMware Fusion/Workstation Specfic
+  config.vm.provider "vmware_desktop" do |vmware|
+    vmware.gui = true
+    vmware.vmx['displayname'] = "OpenIO-SDS"
+    vmware.vmx["numvcpus"] = "1"
+    vmware.vmx["memsize"] = "1024"
+  end
+
+  # Provisionning OpenIO SDS
+  config.vm.provision "shell", inline: <<-SHELL
+    /usr/bin/yum -y install wget
+    release=$(/bin/wget #{openio_mirror}/latest -q -O -)
+    /usr/bin/yum -y install http://mirror.openio.io/pub/repo/openio/sds/\$release/el/openio-sds-release-\$release-1.el.noarch.rpm #{openstack_repo}
+    /usr/bin/yum -y install puppet-openio-sds-profile-swift memcached redis python-swiftclient
+    /usr/bin/puppet module install stackforge-keystone
+    /usr/bin/systemctl enable memcached.service redis.service
+    /usr/bin/systemctl start memcached.service
+    /usr/bin/systemctl start redis.service
+    /usr/share/puppet/modules/openiosds/profiles/install.sh swift
+    echo "export OS_TENANT_NAME=demo
+export OS_USERNAME=demo
+export OS_PASSWORD=DEMO_PASS
+export OS_AUTH_URL=http://localhost:5000/v2.0" \
+      > ~openio/keystonerc_demo
+  SHELL
+
+end

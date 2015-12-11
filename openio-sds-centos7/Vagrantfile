@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  # Box configuration
+  config.vm.box = "openio/sds"
+  config.vm.network "private_network", :type => 'dhcp', :adapter => 2
+  config.vm.network "public_network" , :type => 'dhcp', :adapter => 3
+  config.vm.synced_folder '.', '/var/lib/oio/vagrant', disabled: true
+
+  # use "openio" as default user instead of "vagrant"
+  config.ssh.username = "openio"
+  config.ssh.password = ""
+
+  # VirtualBox Specific
+  config.vm.provider :virtualbox do |virtualbox|
+    virtualbox.gui = true
+    virtualbox.name = "OpenIO-CentOS7"
+    virtualbox.cpus = "1"
+    virtualbox.memory = "768"
+  end
+
+  # Provisionning OpenIO SDS
+  config.vm.provision "shell", inline: <<-SHELL
+    yum -y install http://mirror.openio.io/pub/repo/openio/sds/15.12/el/openio-sds-release-15.12-1.el.noarch.rpm
+  SHELL
+
+end

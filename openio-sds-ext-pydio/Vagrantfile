@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure(2) do |config|
+
+  if ARGV[0] =~ /^up|provision$/i and not ARGV.include?("--no-provision")
+    # Get OpenIO-SDS Swift IP
+    vmlist = `VBoxManage list vms`
+    vmswift = vmlist.match('\"OpenIO-SDS.*-swift.*\"')
+    res = `VBoxManage guestproperty get #{vmswift} /VirtualBox/GuestInfo/Net/1/V4/IP 2>/dev/null`
+    if $? != 0
+      abort "Error: Cannot get IP address of an OpenIO-SDS Swift Virtual Machine."
+    end
+    openio_sds_ipaddr = res.split[1]
+  end
+
+  # Box configuration
+  config.vm.box = "openio/sds-ext-pydio"
+  config.vm.network "private_network", :type => 'dhcp', :adapter => 2
+  config.vm.network "public_network" , :type => 'dhcp', :adapter => 3
+  config.vm.synced_folder '.', '/var/lib/oio/vagrant', disabled: true
+
+  # use "openio" as default user instead of "vagrant"
+  config.ssh.username = "openio"
+  config.ssh.password = ""
+  config.ssh.pty = true
+
+  # VirtualBox Specific
+  config.vm.provider :virtualbox do |virtualbox|
+    virtualbox.gui = true
+    virtualbox.name = "OpenIO-SDS-ext-pydio"
+    virtualbox.cpus = "1"
+    virtualbox.memory = "1024"
+  end
+
+
+  # Provisionning OpenIO SDS
+  config.vm.provision "shell", inline:  <<-SHELL
+    /usr/bin/yum -y install puppet-openio-sds-profile-vagrant-ext-pydio
+    /usr/share/puppet/modules/openiosds/profiles/install.sh vagrant-ext-pydio #{openio_sds_ipaddr}
+  SHELL
+
+end
