@@ -3,6 +3,9 @@
 
 Vagrant.configure(2) do |config|
 
+  openstack_repo = 'https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm'
+  openio_mirror = ENV['OIO_MIRROR'] || 'http://mirror.openio.io/pub/repo/openio/sds'
+
   # Box configuration
   config.vm.box = "openio/sds"
   config.vm.network "private_network", :type => 'dhcp', :adapter => 2
