@@ -13,6 +13,7 @@ Vagrant.configure(2) do |config|
   openio_mirror = ENV['OIO_MIRROR'] || 'http://mirror.openio.io/pub/repo/openio/sds'
   nbinstances = ENV['OIO_INSTANCENB'] || 0
   add_repo = ENV['ADD_REPO'] || nil
+  openio_release = ENV['OIO_RELEASE'] || nil
   openio_sds_ipaddr = ''
   VM_MAIN_SNAME = 'OpenIO-SDS'
   vm_sname = "#{VM_MAIN_SNAME}#{subprofile}"
@@ -49,7 +50,7 @@ Vagrant.configure(2) do |config|
     virtualbox.gui = true
     virtualbox.name = "#{vm_sname}"
     virtualbox.cpus = "1"
-    virtualbox.memory = "768"
+    virtualbox.memory = "1024"
   end
 
   # OpenStack
@@ -115,9 +116,13 @@ Vagrant.configure(2) do |config|
 
   # Provisionning OpenIO SDS
   config.vm.provision "shell", inline:  <<-SHELL
-    /usr/bin/yum -y install wget
-    release=$(/bin/wget #{openio_mirror}/latest -q -O -)
-    /usr/bin/yum -y install http://mirror.openio.io/pub/repo/openio/sds/\$release/el/openio-sds-release-\$release-1.el.noarch.rpm #{add_repo}
+    if [ -z "#{openio_release}" ]; then
+      /usr/bin/yum -y install wget
+      release=$(/bin/wget #{openio_mirror}/latest -q -O -)
+    else
+      release="#{openio_release}"
+    fi
+    /usr/bin/yum -y install #{openio_mirror}/\$release/el/openio-sds-release-\$release-1.el.noarch.rpm #{add_repo}
     /usr/bin/yum -y install puppet-openio-sds-profile-#{PROFILE}
     /usr/share/puppet/modules/openiosds/profiles/install.sh #{PROFILE} #{openio_sds_ipaddr}
     /usr/bin/yum -y install python-oiopy
