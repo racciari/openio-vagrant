@@ -27,7 +27,6 @@ Vagrant.configure(2) do |config|
   if VAGRANT_PROVIDER == 'virtualbox'
     puts 'Using the virtualbox provider ...'
     config.vm.network "private_network", :type => 'dhcp', :adapter => 2
-    config.vm.network "public_network" , :type => 'dhcp', :adapter => 3
     # use "openio" as default user instead of "vagrant"
     config.ssh.username = "openio"
 
@@ -50,7 +49,7 @@ Vagrant.configure(2) do |config|
     virtualbox.gui = true
     virtualbox.name = "#{vm_sname}"
     virtualbox.cpus = "1"
-    virtualbox.memory = "1024"
+    virtualbox.memory = "1536"
   end
 
   # OpenStack
@@ -123,7 +122,7 @@ Vagrant.configure(2) do |config|
       release="#{openio_release}"
     fi
     /usr/bin/yum -y install #{openio_mirror}/\$release/el/openio-sds-release-\$release-1.el.noarch.rpm #{add_repo}
-    /usr/bin/yum -y install puppet-openio-sds-profile-#{PROFILE}
+    /usr/bin/yum -y install puppet-openio-sds-profile-vagrant
     /usr/share/puppet/modules/openiosds/profiles/install.sh #{PROFILE} #{openio_sds_ipaddr}
     /usr/bin/yum -y install python-oiopy
     echo "OIO_NS=OPENIO
