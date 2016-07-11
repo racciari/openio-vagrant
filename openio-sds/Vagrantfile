@@ -6,7 +6,7 @@ Vagrant.configure(2) do |config|
 
   # Gloval env variables
   PROFILE = ENV['OIO_PROFILE'] || 'vagrant'
-  abort "Unsupported OpenIO profile #{PROFILE}. Aborting." unless ['vagrant','vagrant-ext','vagrant-ext-space','vagrant-ext-swift','vagrant-ext-cyrus'].include?(PROFILE)
+  abort "Unsupported OpenIO profile #{PROFILE}. Aborting." unless ['vagrant','vagrant-ext','vagrant-ext-space','vagrant-ext-swift','vagrant-ext-cyrus','vagrant-swift'].include?(PROFILE)
   VAGRANT_PROVIDER = ENV['VAGRANT_PROVIDER'] || 'virtualbox'
   abort "Unsupported provider #{VAGRANT_PROVIDER}. Aborting." unless ['virtualbox','openstack','aws'].include?(VAGRANT_PROVIDER)
   subprofile = PROFILE.sub('vagrant','')
